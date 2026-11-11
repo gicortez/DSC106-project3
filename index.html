@@ -102,6 +102,19 @@
   </p>
 
   <p>
+    During the design process, we considered using separate static charts 
+    for each emissions scenario, but decided that a combined interactive 
+    line chart would make comparisons easier by allowing users to view 
+    the different projections together. We also considered displaying only 
+    the average temperature projections, but chose to include individual 
+    model lines and shaded ranges so that readers could better understand 
+    the variation between climate models. For the uncertainty comparison, 
+    we decided to use a separate visualization rather than combining 
+    everything into one chart, since this made it easier to distinguish 
+    between the effects of emissions scenarios and differences between climate models.
+  </p>
+
+  <p>
     We used three distinct colors to represent the emissions scenarios:
     teal for SSP1-2.6 (low emissions), orange for SSP2-4.5 (medium emissions),
     and red for SSP5-8.5 (high emissions). This color scheme helps users
@@ -158,12 +171,14 @@
 
   <h3>Development Process</h3>
   <p>
-    Our team worked collaboratively to develop the data processing pipeline,
-    visualization, and interactive features. We used a Jupyter notebook
-    to retrieve and process CMIP6 climate data, producing a CSV file
-    containing annual global temperature anomalies for each model and
-    scenario. We then used D3.js to construct the interactive visualization
-    and implement the different chart components.
+    Our team worked collaboratively to develop the data processing pipeline, 
+    visualization, and interactive features. Team responsibilities were divided 
+    across data research and preprocessing, visualization design, D3.js implementation, 
+    and testing and documentation, although members collaborated throughout the project. 
+    We used a Jupyter notebook to retrieve and process CMIP6 climate data, producing 
+    a CSV file containing annual global temperature anomalies for each model and scenario. 
+    We then used D3.js to construct the interactive visualization and implement the 
+    different chart components.
   </p>
 
   <p>
