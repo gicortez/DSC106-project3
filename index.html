@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scenario or Model: What Drives Uncertainty in Future Warming?</title>
+  <style>
+    :root { --ink: #222; --muted: #555; --line: #d9d9d9; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); margin: 0; padding: 24px 16px 60px; background: #fff; line-height: 1.5; }
+    main { max-width: 980px; margin: 0 auto; }
+    h1 { font-size: 26px; line-height: 1.2; margin: 0 0 4px; }
+    .byline { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+    .subtitle { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 6px; font-size: 14px; }
+    #scenario-toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+    .toggle { cursor: pointer; padding: 5px 12px; border-radius: 16px; border: 2px solid; background: #fff; font-size: 13px; font-weight: 600; }
+    .toggle[aria-pressed="false"] { opacity: 0.35; background: #f2f2f2; }
+    .toggle:focus-visible, #reset:focus-visible, #show-models:focus-visible { outline: 3px solid #1a73e8; outline-offset: 2px; }
+    #reset { cursor: pointer; padding: 5px 12px; border-radius: 6px; border: 1px solid #aaa; background: #fff; font-size: 13px; }
+    .legend-note { font-size: 12.5px; color: var(--muted); margin: 4px 0 8px; }
+    #chart-wrap { position: relative; }
+    #tooltip { position: absolute; left: 0; top: 0; pointer-events: none; opacity: 0; background: rgba(255,255,255,0.97); border: 1px solid #bbb; border-radius: 6px; padding: 7px 10px; font-size: 12.5px; line-height: 1.5; box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap; z-index: 5; }
+    #tooltip .tt-year { font-weight: 700; margin-bottom: 2px; }
+    #tooltip .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+    #tooltip .nearest { margin-top: 4px; padding-top: 4px; border-top: 1px solid #ddd; color: #333; }
+    .takeaway { background: #f4f8fb; border-left: 4px solid #1d3557; padding: 10px 14px; margin: 14px 0 0; font-size: 14.5px; }
+    .source { font-size: 12px; color: #777; margin-top: 10px; }
+    .error { color: #b00020; font-size: 14px; }
+    svg text { font-family: inherit; }
+    .grid line { stroke: #e6e6e6; }
+    .grid .domain { display: none; }
+    .axis path, .axis line { stroke: #888; }
+    .chart-layer { pointer-events: none; }
+    #writeup { margin-top: 48px; padding-top: 16px; border-top: 2px solid var(--line); }
+    #writeup h2 { font-size: 22px; margin: 0 0 6px; }
+    #writeup h3 { font-size: 17px; margin: 22px 0 4px; }
+    #writeup table { border-collapse: collapse; width: 100%; font-size: 14px; margin-top: 8px; }
+    #writeup th, #writeup td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+    #writeup th { background: #f6f6f6; }
+    .todo { background: #fff6d6; border: 1px dashed #c9a400; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Scenario or Model: What Drives Uncertainty in Future Warming?</h1>
+  <p class="byline">Team CCC &middot; Mac Dang, Athena Lin, Gian Cortez, Christopher Nguyen &middot; DSC 106, Project 3</p>
+  <p class="subtitle">
+    Annual global-mean near-surface air temperature from 5 CMIP6 models (CESM2, CanESM5, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR),
+    shown as change from each model's own 1850&ndash;1900 average. Monthly values were averaged by year and weighted by area (latitude).
+    Each model's historical run (to 2014) is followed by three future emissions scenarios (to 2100), using one run per model.
+    The lower panel compares 11-year rolling averages of the runs.
+  </p>
+
+  <div class="controls">
+    <div id="scenario-toggles" role="group" aria-label="Scenarios to show"></div>
+    <label><input type="checkbox" id="show-models" checked> Show individual models</label>
+    <button id="reset" type="button">Reset zoom</button>
+  </div>
+  <p class="legend-note">
+    Top: thick line = model mean &middot; shaded band = range across the 5 models &middot; thin lines = single models (gray before 2015).
+    Bottom: how far apart the <em>scenarios</em> are versus how far apart the <em>models</em> are.
+    Hover either panel for details, and drag on the strip at the bottom to zoom into a range of years.
+    Turning scenarios on and off updates the lower panel.
+  </p>
+
+  <div id="chart-wrap">
+    <div id="chart"></div>
+    <div id="tooltip" role="status"></div>
+  </div>
+
+  <p class="takeaway" id="takeaway" aria-live="polite"></p>
+
+  <p class="source">Data: CMIP6 climate model output (public Google Cloud dataset, monthly near-surface air temperature, <code>tas</code>).</p>
+
+  <section id="writeup">
+    <h2>Write-up</h2>
+
+    <h3>Motivation</h3>
+    <p class="todo">TODO (team): write 3&ndash;5 sentences in your own words. Why this question? What did you hope a reader could discover with the interactions that a static plot would not show?</p>
+
+    <h3>Design decisions</h3>
+    <p class="todo">TODO (team): explain, in your own words, why you chose your visual encodings (position, hue, shaded range, dashed vs solid), your interactions (scenario toggles, hover details, zoom strip, linked panels), your data transformations, and your color palette. Include the alternatives you tried or considered (your exploratory graphs from the checkpoint are real examples) and why you moved on from them.</p>
+
+    <h3>Development process</h3>
+    <table>
+      <thead><tr><th>Team member</th><th>What they worked on</th><th>Approx. hours</th></tr></thead>
+      <tbody>
+        <tr><td>Mac Dang</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
+        <tr><td>Athena Lin</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
+        <tr><td>Gian Cortez</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
+        <tr><td>Christopher Nguyen</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
+      </tbody>
+    </table>
+    <p class="todo">TODO (team): total people-hours for the project, and which parts took the most time.</p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+(function () {
+  const SCEN = [
+    { id: "ssp126", label: "SSP1-2.6 (low emissions)",  color: "#2a9d8f" },
+    { id: "ssp245", label: "SSP2-4.5 (middle)",         color: "#e9a23b" },
+    { id: "ssp585", label: "SSP5-8.5 (high emissions)", color: "#c0392b" }
+  ];
+  const HIST_COLOR = "#666";
+  const GAP_COLOR = "#1d3557";     // gap between scenarios
+  const MODEL_COLOR = "#a4278d";   // disagreement between models
+  const colorOf = Object.fromEntries(SCEN.map(s => [s.id, s.color]));
+  const labelOf = Object.fromEntries(SCEN.map(s => [s.id, s.label]));
+  const fmt = d3.format(".1f");
+  const FIRST_YEAR = 1850, LAST_YEAR = 2100, LAST_HIST = 2014, FIRST_FUTURE = 2015;
+  const SMOOTH_WINDOW = 11;
+
+  const state = { visible: new Set(SCEN.map(s => s.id)), showModels: true, domain: [FIRST_YEAR, LAST_YEAR] };
+  let highlightKey = null;
+
+  d3.csv("data/global_tas.csv", d3.autoType).then(init).catch(err => {
+    d3.select("#chart").append("p").attr("class", "error")
+      .text("Could not load data/global_tas.csv. If you opened this file directly, run a local server in this folder instead (python3 -m http.server) and open http://localhost:8000.");
+    console.error(err);
+  });
+
+  function init(rows) {
+    // ---------- data prep ----------
+    const mkSeries = (key, model, scenario, values) => {
+      values.sort((a, b) => a.year - b.year);
+      return { key, model, scenario, values, byYear: new Map(values.map(v => [v.year, v.value])) };
+    };
+    const histRows = d3.group(rows.filter(d => d.scenario === "historical"), d => d.model);
+    const models = Array.from(histRows.keys()).sort();
+
+    const histSeries = models.map(m =>
+      mkSeries(m + "|hist", m, "historical", histRows.get(m).map(d => ({ year: d.year, value: d.anomaly_c }))));
+
+    const series = [];          // future pieces for drawing (start at last historical point so lines connect)
+    const smooth = new Map();   // "model|scenario" -> Map(year -> 11-yr rolling mean of the stitched run)
+    for (const hs of histSeries) {
+      const lastPoint = hs.values[hs.values.length - 1];
+      for (const s of SCEN) {
+        const future = rows.filter(d => d.model === hs.model && d.scenario === s.id)
+          .map(d => ({ year: d.year, value: d.anomaly_c }));
+        series.push(mkSeries(hs.model + "|" + s.id, hs.model, s.id, [lastPoint].concat(future)));
+
+        const stitched = hs.values.concat(future).sort((a, b) => a.year - b.year);
+        const half = (SMOOTH_WINDOW - 1) / 2;
+        smooth.set(hs.model + "|" + s.id, new Map(stitched.map((p, i) =>
+          [p.year, d3.mean(stitched.slice(Math.max(0, i - half), Math.min(stitched.length, i + half + 1)), q => q.value)])));
+      }
+    }
+
+    const summarize = list => {
+      const byYr = d3.rollup(list.flatMap(d => d.values), v => ({ mean: d3.mean(v, d => d.value), min: d3.min(v, d => d.value), max: d3.max(v, d => d.value) }), d => d.year);
+      const arr = Array.from(byYr, ([year, o]) => ({ year, ...o })).sort((a, b) => a.year - b.year);
+      return { rows: arr, byYear: new Map(arr.map(d => [d.year, d])) };
+    };
+    const histStats = summarize(histSeries);
+    const stats = Object.fromEntries(SCEN.map(s => [s.id, summarize(series.filter(d => d.scenario === s.id))]));
+
+    // Spread comparison for the lower panel (computed on the 11-year rolling means):
+    //  scenarioGap = highest minus lowest scenario multi-model mean
+    //  modelSpread = hottest minus coolest model, averaged over the visible scenarios
+    function computeSpreads(visIds) {
+      const out = [];
+      for (let yr = FIRST_FUTURE; yr <= LAST_YEAR; yr++) {
+        const means = [], ranges = [];
+        for (const id of visIds) {
+          const vals = models.map(m => smooth.get(m + "|" + id).get(yr));
+          means.push(d3.mean(vals));
+          ranges.push(d3.max(vals) - d3.min(vals));
+        }
+        out.push({ year: yr, gap: visIds.length > 1 ? d3.max(means) - d3.min(means) : null, model: d3.mean(ranges) });
+      }
+      return out;
+    }
+    // First year after which the scenario gap stays at least as large as the model spread.
+    function crossoverYear(sp) {
+      let found = null;
+      for (let i = sp.length - 1; i >= 0; i--) {
+        if (sp[i].gap != null && sp[i].gap >= sp[i].model) found = sp[i].year; else break;
+      }
+      return found;
+    }
+    const spreadAll = computeSpreads(SCEN.map(s => s.id));
+    const spreadMax = d3.max(spreadAll, d => Math.max(d.gap, d.model));
+
+    // ---------- layout ----------
+    const W = 960;
+    const margin = { top: 10, right: 24, bottom: 30, left: 56 };
+    const innerW = W - margin.left - margin.right;
+    const mainH = 300;
+    const spreadTop = margin.top + mainH + 78, spreadH = 150;
+    const ctxTop = spreadTop + spreadH + 62, ctxH = 50;
+    const H = ctxTop + ctxH + 40;
+
+    const svg = d3.select("#chart").append("svg")
+      .attr("viewBox", [0, 0, W, H]).attr("width", "100%")
+      .attr("role", "img")
+      .attr("aria-label", "Two linked charts. Top: global temperature change by climate model and emissions scenario, 1850 to 2100. Bottom: how far apart the scenarios are compared with how far apart the models are.");
+    const svgNode = svg.node();
+
+    const defs = svg.append("defs");
+    defs.append("clipPath").attr("id", "clip-main").append("rect").attr("width", innerW).attr("height", mainH);
+    defs.append("clipPath").attr("id", "clip-spread").append("rect").attr("width", innerW).attr("height", spreadH);
+
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const gs = svg.append("g").attr("transform", `translate(${margin.left},${spreadTop})`);
+    const ctx = svg.append("g").attr("transform", `translate(${margin.left},${ctxTop})`);
+
+    const allVals = histSeries.concat(series).flatMap(d => d.values.map(v => v.value));
+    const x = d3.scaleLinear().domain(state.domain).range([0, innerW]);
+    const y = d3.scaleLinear().domain([d3.min(allVals) - 0.3, d3.max(allVals) + 0.3]).range([mainH, 0]);
+    const ys = d3.scaleLinear().domain([0, Math.ceil(spreadMax * 2) / 2 + 0.25]).range([spreadH, 0]);
+    const x2 = d3.scaleLinear().domain([FIRST_YEAR, LAST_YEAR]).range([0, innerW]);
+    const y2 = d3.scaleLinear().domain(y.domain()).range([ctxH, 0]);
+
+    // ---- top panel scaffolding ----
+    g.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(8).tickSize(-innerW).tickFormat(""));
+    const gx = g.append("g").attr("class", "axis").attr("transform", `translate(0,${mainH})`);
+    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(8));
+    g.append("text").attr("transform", "rotate(-90)").attr("x", -mainH / 2).attr("y", -40)
+      .attr("text-anchor", "middle").attr("font-size", 12).attr("fill", "#444")
+      .text("Change in global temperature (°C)");
+
+    const layers = g.append("g").attr("clip-path", "url(#clip-main)").attr("class", "chart-layer");
+    const bandsG = layers.append("g");
+    const modelsG = layers.append("g");
+    const meansG = layers.append("g");
+    const divider = layers.append("line").attr("y1", 0).attr("y2", mainH).attr("stroke", "#888").attr("stroke-dasharray", "3,3");
+    const dividerLabel = layers.append("text").attr("y", 14).attr("font-size", 11).attr("fill", "#666").text("projections →");
+    const crossMain = layers.append("line").attr("y1", 0).attr("y2", mainH).attr("stroke", GAP_COLOR).attr("stroke-width", 1.2).attr("stroke-dasharray", "1,4").style("display", "none");
+    const crossMainLabel = layers.append("text").attr("y", mainH - 8).attr("font-size", 11).attr("fill", GAP_COLOR).attr("font-weight", 600).style("display", "none");
+    const hoverMain = layers.append("line").attr("y1", 0).attr("y2", mainH).attr("stroke", "#333").attr("stroke-width", 1).style("display", "none");
+    const focusDot = layers.append("circle").attr("r", 4.5).attr("fill", "#fff").attr("stroke", "#222").attr("stroke-width", 2).style("display", "none");
+
+    // ---- lower panel scaffolding ----
+    gs.append("text").attr("x", 0).attr("y", -34).attr("font-size", 13).attr("font-weight", 700).attr("fill", "#222")
+      .text("Which matters more: the scenario or the model?");
+    gs.append("text").attr("x", 0).attr("y", -18).attr("font-size", 11.5).attr("fill", "#555")
+      .text("Solid line: gap between the highest and lowest scenario average. Dashed line: gap between the hottest and coolest model within a scenario (average).");
+    gs.append("g").attr("class", "grid").call(d3.axisLeft(ys).ticks(5).tickSize(-innerW).tickFormat(""));
+    const gxs = gs.append("g").attr("class", "axis").attr("transform", `translate(0,${spreadH})`);
+    gs.append("g").attr("class", "axis").call(d3.axisLeft(ys).ticks(5));
+    gs.append("text").attr("transform", "rotate(-90)").attr("x", -spreadH / 2).attr("y", -40)
+      .attr("text-anchor", "middle").attr("font-size", 12).attr("fill", "#444").text("Spread (°C)");
+
+    const layersS = gs.append("g").attr("clip-path", "url(#clip-spread)").attr("class", "chart-layer");
+    const histNote = layersS.append("text").attr("y", spreadH / 2).attr("font-size", 11.5).attr("fill", "#777");
+    const gapPath = layersS.append("path").attr("fill", "none").attr("stroke", GAP_COLOR).attr("stroke-width", 3);
+    const modelPath = layersS.append("path").attr("fill", "none").attr("stroke", MODEL_COLOR).attr("stroke-width", 3).attr("stroke-dasharray", "7,4");
+    const crossSpread = layersS.append("line").attr("y1", 0).attr("y2", spreadH).attr("stroke", GAP_COLOR).attr("stroke-width", 1.2).attr("stroke-dasharray", "1,4").style("display", "none");
+    const crossDot = layersS.append("circle").attr("r", 5).attr("fill", "#fff").attr("stroke", GAP_COLOR).attr("stroke-width", 2.5).style("display", "none");
+    const needTwo = layersS.append("text").attr("x", 10).attr("y", 20).attr("font-size", 12).attr("fill", "#a4278d").style("display", "none")
+      .text("Turn on at least two scenarios to see the gap between scenarios.");
+    const hoverSpread = layersS.append("line").attr("y1", 0).attr("y2", spreadH).attr("stroke", "#333").attr("stroke-width", 1).style("display", "none");
+    const lblGap = layersS.append("text").attr("font-size", 11.5).attr("font-weight", 700).attr("fill", GAP_COLOR).text("between scenarios");
+    const lblModel = layersS.append("text").attr("font-size", 11.5).attr("font-weight", 700).attr("fill", MODEL_COLOR).text("between models");
+
+    const line = d3.line().x(d => x(d.year)).y(d => y(d.value));
+    const area = d3.area().x(d => x(d.year)).y0(d => y(d.min)).y1(d => y(d.max));
+    const meanPts = rs => rs.map(o => ({ year: o.year, value: o.mean }));
+    const strokeOf = d => (d.scenario === "historical" ? HIST_COLOR : colorOf[d.scenario]);
+
+    let spreads = spreadAll, crossYr = crossoverYear(spreadAll);
+
+    // ---------- drawing ----------
+    function update() {
+      x.domain(state.domain);
+      const axis = d3.axisBottom(x).ticks(8).tickFormat(d3.format("d"));
+      gx.call(axis); gxs.call(axis);
+
+      const visIds = SCEN.filter(s => state.visible.has(s.id)).map(s => s.id);
+      const vis = SCEN.filter(s => state.visible.has(s.id));
+      const groups = [{ id: "hist", color: HIST_COLOR, st: histStats }].concat(vis.map(s => ({ id: s.id, color: s.color, st: stats[s.id] })));
+
+      bandsG.selectAll("path").data(groups, d => d.id).join("path")
+        .attr("fill", d => d.color).attr("fill-opacity", 0.17).attr("d", d => area(d.st.rows));
+
+      const lines = state.showModels ? histSeries.concat(series.filter(s => state.visible.has(s.scenario))) : [];
+      modelsG.selectAll("path").data(lines, d => d.key).join("path")
+        .attr("fill", "none").attr("stroke", strokeOf).attr("d", d => line(d.values));
+
+      meansG.selectAll("path").data(groups, d => d.id).join("path")
+        .attr("fill", "none").attr("stroke", d => (d.id === "hist" ? "#444" : d.color)).attr("stroke-width", 3)
+        .attr("d", d => line(meanPts(d.st.rows)));
+
+      divider.attr("x1", x(LAST_HIST + 0.5)).attr("x2", x(LAST_HIST + 0.5));
+      dividerLabel.attr("x", x(LAST_HIST + 0.5) + 6);
+
+      // lower panel
+      spreads = computeSpreads(visIds);
+      crossYr = crossoverYear(spreads);
+      const sLine = d3.line().x(d => x(d.year));
+      modelPath.attr("d", sLine.y(d => ys(d.model))(spreads));
+      gapPath.attr("d", visIds.length > 1 ? sLine.y(d => ys(d.gap))(spreads) : null);
+      needTwo.style("display", visIds.length > 1 ? "none" : null);
+
+      const last = spreads[spreads.length - 1];
+      const endX = Math.min(innerW - 4, x(LAST_YEAR));
+      const firstShown = spreads.find(d => d.year >= Math.max(state.domain[0], FIRST_FUTURE)) || spreads[0];
+      const lx = x(firstShown.year);
+      if (lx > 110) lblModel.attr("x", lx - 8).attr("y", ys(firstShown.model) + 4).attr("text-anchor", "end");
+      else lblModel.attr("x", Math.max(4, lx + 6)).attr("y", Math.max(12, ys(firstShown.model) - 14)).attr("text-anchor", "start");
+      lblGap.attr("x", endX).attr("y", last.gap != null ? Math.max(12, ys(last.gap) + (last.gap > last.model ? -7 : 16)) : -50).attr("text-anchor", "end");
+      histNote.attr("x", 10).text(state.domain[0] < FIRST_FUTURE ? "before 2015 every scenario shares the same historical run" : "")
+        .style("display", state.domain[0] < FIRST_FUTURE - 5 && x(FIRST_FUTURE) > 330 ? null : "none");
+
+      if (crossYr != null && crossYr >= state.domain[0] && crossYr <= state.domain[1]) {
+        crossMain.style("display", null).attr("x1", x(crossYr)).attr("x2", x(crossYr));
+        crossSpread.style("display", null).attr("x1", x(crossYr)).attr("x2", x(crossYr));
+        const cv = spreads.find(d => d.year === crossYr);
+        crossDot.style("display", null).attr("cx", x(crossYr)).attr("cy", ys(cv.gap));
+        const rightSide = x(crossYr) > innerW * 0.6;
+        const txt = `~${crossYr}: scenario gap overtakes model spread`;
+        crossMainLabel.style("display", null).text(txt).attr("x", x(crossYr) + (rightSide ? -6 : 6)).attr("text-anchor", rightSide ? "end" : "start");
+      } else {
+        [crossMain, crossSpread, crossDot, crossMainLabel].forEach(e => e.style("display", "none"));
+      }
+
+      // takeaway sentence (computed from the data currently shown)
+      const at = yr => spreads.find(d => d.year === yr);
+      const a = at(2040), b = at(LAST_YEAR);
+      let msg;
+      if (visIds.length < 2) {
+        msg = "Turn on at least two scenarios to compare the scenario gap with the spread between models.";
+      } else {
+        msg = `In 2040, the hottest and coolest models differ by ${fmt(a.model)}°C on average, while the selected scenarios differ by ${fmt(a.gap)}°C. ` +
+          (crossYr != null
+            ? `The scenario gap overtakes the model spread around ${crossYr}, and by 2100 it is ${fmt(b.gap)}°C versus ${fmt(b.model)}°C.`
+            : `Even by 2100 the gap between scenarios (${fmt(b.gap)}°C) does not clearly exceed the spread between models (${fmt(b.model)}°C) for this selection.`);
+      }
+      d3.select("#takeaway").text(msg);
+      styleLines();
+    }
+
+    function styleLines() {
+      modelsG.selectAll("path")
+        .attr("stroke-opacity", d => highlightKey ? (d.key === highlightKey ? 1 : 0.08) : 0.22)
+        .attr("stroke-width", d => d.key === highlightKey ? 2.6 : 1)
+        .filter(d => d.key === highlightKey).raise();
+    }
+
+    // ---------- scenario toggles ----------
+    d3.select("#scenario-toggles").selectAll("button").data(SCEN).join("button")
+      .attr("type", "button").attr("class", "toggle")
+      .style("border-color", d => d.color).style("color", d => d.color)
+      .attr("aria-pressed", "true")
+      .text(d => d.label)
+      .on("click", function (event, d) {
+        if (state.visible.has(d.id)) {
+          if (state.visible.size === 1) return;       // keep at least one scenario on
+          state.visible.delete(d.id);
+        } else {
+          state.visible.add(d.id);
+        }
+        d3.select(this).attr("aria-pressed", String(state.visible.has(d.id)));
+        highlightKey = null;
+        update();
+      });
+
+    d3.select("#show-models").on("change", function () {
+      state.showModels = this.checked;
+      highlightKey = null;
+      update();
+    });
+
+    // ---------- hover (linked across both panels) ----------
+    const tip = d3.select("#tooltip");
+    const overlayMain = g.append("rect").attr("id", "overlay-main").attr("width", innerW).attr("height", mainH)
+      .attr("fill", "none").style("pointer-events", "all");
+    const overlaySpread = gs.append("rect").attr("id", "overlay-spread").attr("width", innerW).attr("height", spreadH)
+      .attr("fill", "none").style("pointer-events", "all");
+
+    const clampYear = mx => Math.max(state.domain[0], Math.min(state.domain[1], Math.round(x.invert(mx))));
+
+    function placeTip(svgX, svgY) {
+      const scale = (svgNode.getBoundingClientRect().width / W) || 1;
+      const wrapW = document.getElementById("chart-wrap").clientWidth;
+      const tipW = tip.node().offsetWidth;
+      let left = svgX * scale + 14;
+      if (left + tipW > wrapW) left = svgX * scale - tipW - 14;
+      tip.style("left", Math.max(0, left) + "px").style("top", Math.max(0, svgY * scale - 10) + "px").style("opacity", 1);
+    }
+
+    function showYear(yr, source, my) {
+      const vis = SCEN.filter(s => state.visible.has(s.id));
+      const isHist = yr <= LAST_HIST;
+      hoverMain.style("display", null).attr("x1", x(yr)).attr("x2", x(yr));
+      hoverSpread.style("display", null).attr("x1", x(yr)).attr("x2", x(yr));
+
+      let nearest = null;
+      if (source === "main" && state.showModels) {
+        const yv = y.invert(my);
+        const candidates = isHist ? histSeries : series.filter(s => state.visible.has(s.scenario));
+        let best = Infinity;
+        for (const s of candidates) {
+          const v = s.byYear.get(yr);
+          if (v == null) continue;
+          const dist = Math.abs(v - yv);
+          if (dist < best) { best = dist; nearest = s; }
+        }
+      }
+      highlightKey = nearest ? nearest.key : null;
+      styleLines();
+      if (nearest) focusDot.style("display", null).attr("cx", x(yr)).attr("cy", y(nearest.byYear.get(yr)));
+      else focusDot.style("display", "none");
+
+      tip.html("");
+      tip.append("div").attr("class", "tt-year").text(yr);
+      const addRow = (label, text, color) => {
+        const row = tip.append("div");
+        row.append("span").attr("class", "dot").style("background", color);
+        row.append("span").text(`${label}: ${text}`);
+      };
+      if (source === "main") {
+        if (isHist) {
+          const st = histStats.byYear.get(yr);
+          addRow("Historical", `${fmt(st.mean)}°C avg (range ${fmt(st.min)} to ${fmt(st.max)})`, HIST_COLOR);
+        } else {
+          for (const s of vis) { const st = stats[s.id].byYear.get(yr); addRow(s.label, `${fmt(st.mean)}°C avg (range ${fmt(st.min)} to ${fmt(st.max)})`, s.color); }
+        }
+        if (nearest) {
+          const name = isHist ? `${nearest.model} (historical)` : `${nearest.model}, ${labelOf[nearest.scenario]}`;
+          tip.append("div").attr("class", "nearest").text(`Closest line: ${name}, ${fmt(nearest.byYear.get(yr))}°C`);
+        }
+        placeTip(margin.left + x(yr), margin.top + my);
+      } else {
+        if (isHist) {
+          tip.append("div").text("Every scenario shares the same historical run before 2015.");
+        } else {
+          const d = spreads.find(s => s.year === yr);
+          addRow("Between models", `${fmt(d.model)}°C`, MODEL_COLOR);
+          if (d.gap != null) addRow("Between scenarios", `${fmt(d.gap)}°C`, GAP_COLOR);
+          tip.append("div").attr("class", "nearest").text(d.gap != null ? (d.gap >= d.model ? "Scenario choice matters more this year" : "Model choice matters more this year") : "Select 2+ scenarios to compare");
+        }
+        placeTip(margin.left + x(yr), spreadTop + my);
+      }
+    }
+
+    function hide() {
+      highlightKey = null; styleLines();
+      hoverMain.style("display", "none"); hoverSpread.style("display", "none"); focusDot.style("display", "none");
+      tip.style("opacity", 0).style("left", "0px").style("top", "0px");
+    }
+
+    overlayMain.on("mousemove", function (event) { const [mx, my] = d3.pointer(event, this); showYear(clampYear(mx), "main", my); }).on("mouseleave", hide);
+    overlaySpread.on("mousemove", function (event) { const [mx, my] = d3.pointer(event, this); showYear(clampYear(mx), "spread", my); }).on("mouseleave", hide);
+
+    // ---------- context strip with brush (zoom) ----------
+    const ctxLine = d3.line().x(d => x2(d.year)).y(d => y2(d.value));
+    const ctxSets = [{ color: "#444", st: histStats }].concat(SCEN.map(s => ({ color: s.color, st: stats[s.id] })));
+    for (const c of ctxSets) {
+      ctx.append("path").attr("fill", "none").attr("stroke", c.color).attr("stroke-width", 1.6).attr("d", ctxLine(meanPts(c.st.rows)));
+    }
+    ctx.append("g").attr("class", "axis").attr("transform", `translate(0,${ctxH})`).call(d3.axisBottom(x2).ticks(10).tickFormat(d3.format("d")));
+    ctx.append("text").attr("x", 6).attr("y", 12).attr("font-size", 11).attr("fill", "#666").style("pointer-events", "none")
+      .text("Drag here to zoom both charts into a range of years");
+
+    const brush = d3.brushX().extent([[0, 0], [innerW, ctxH]]).on("brush end", event => {
+      const sel = event.selection;
+      state.domain = sel ? sel.map(v => Math.round(x2.invert(v))) : [FIRST_YEAR, LAST_YEAR];
+      if (state.domain[1] - state.domain[0] < 3) state.domain[1] = state.domain[0] + 3;
+      update();
+    });
+    const brushG = ctx.append("g").attr("class", "brush").call(brush);
+    d3.select("#reset").on("click", () => brushG.call(brush.move, null));
+
+    update();
+  }
+})();
+</script>
+</body>
+</html>
