@@ -72,27 +72,158 @@
 
   <p class="source">Data: CMIP6 climate model output (public Google Cloud dataset, monthly near-surface air temperature, <code>tas</code>).</p>
 
-  <section id="writeup">
-    <h2>Write-up</h2>
+  
+<section id="writeup">
+  <h2>Write-up</h2>
 
-    <h3>Motivation</h3>
-    <p class="todo">TODO (team): write 3&ndash;5 sentences in your own words. Why this question? What did you hope a reader could discover with the interactions that a static plot would not show?</p>
+  <h3>Motivation</h3>
+  <p>
+    Climate change projections are often presented as a range of possible
+    future temperatures, but it can be difficult to understand what causes
+    the differences between these predictions. We wanted to explore whether
+    future warming uncertainty is driven more by the emissions pathway
+    society follows or by differences between climate models themselves.
+    This question is important because it helps distinguish the impact of
+    human decisions from the uncertainty that exists within climate science.
+    Our goal was to create an interactive visualization that allows readers
+    to compare these sources of uncertainty over time. Rather than presenting
+    a single static graph, we wanted users to explore different emissions
+    scenarios and see how the relationship between scenario differences
+    and model differences changes throughout the century.
+  </p>
 
-    <h3>Design decisions</h3>
-    <p class="todo">TODO (team): explain, in your own words, why you chose your visual encodings (position, hue, shaded range, dashed vs solid), your interactions (scenario toggles, hover details, zoom strip, linked panels), your data transformations, and your color palette. Include the alternatives you tried or considered (your exploratory graphs from the checkpoint are real examples) and why you moved on from them.</p>
+  <h3>Design Decisions</h3>
+  <p>
+    We chose a line chart as our primary visualization because temperature
+    is a continuous measurement that changes over time. Plotting year on
+    the x-axis and global temperature anomaly on the y-axis makes it easy
+    to identify long-term warming trends and compare projections across
+    different scenarios.
+  </p>
 
-    <h3>Development process</h3>
-    <table>
-      <thead><tr><th>Team member</th><th>What they worked on</th><th>Approx. hours</th></tr></thead>
-      <tbody>
-        <tr><td>Mac Dang</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
-        <tr><td>Athena Lin</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
-        <tr><td>Gian Cortez</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
-        <tr><td>Christopher Nguyen</td><td class="todo">TODO</td><td class="todo">TODO</td></tr>
-      </tbody>
-    </table>
-    <p class="todo">TODO (team): total people-hours for the project, and which parts took the most time.</p>
-  </section>
+  <p>
+    We used three distinct colors to represent the emissions scenarios:
+    teal for SSP1-2.6 (low emissions), orange for SSP2-4.5 (medium emissions),
+    and red for SSP5-8.5 (high emissions). This color scheme helps users
+    distinguish between the scenarios while reinforcing the differences
+    in their projected emissions pathways. Historical data is displayed
+    in gray because it represents the shared historical period rather than
+    a particular future scenario.
+  </p>
+
+  <p>
+    The main chart uses thicker lines to represent the average temperature
+    projection across the five climate models. A shaded band illustrates
+    the minimum and maximum projections across the models, while thinner
+    lines allow users to examine individual model predictions. This
+    combination provides an overview of the general trend without hiding
+    differences between individual models.
+  </p>
+
+  <p>
+    We also included a second visualization underneath the main chart to
+    directly compare uncertainty between emissions scenarios and climate
+    models. This chart uses 11-year rolling averages to reduce short-term
+    fluctuations and make longer-term patterns easier to interpret. One
+    line represents the difference between the highest and lowest scenario
+    averages, while the other represents the average spread between the
+    warmest and coolest climate models. This allows readers to see when
+    the choice of emissions scenario becomes more influential than the
+    choice of climate model.
+  </p>
+
+  <p>
+    Several interactive features make the visualization more exploratory.
+    Users can toggle individual emissions scenarios on and off, allowing
+    them to focus on specific comparisons. They can also show or hide
+    individual climate model projections to reduce visual clutter when
+    examining overall trends. Hover interactions provide additional
+    information about temperature anomalies and model differences at
+    specific years. Finally, a zoomable timeline at the bottom allows
+    users to select a particular time period for closer examination.
+    The two charts are linked, so interacting with one provides
+    corresponding information in the other.
+  </p>
+
+  <p>
+    For data processing, we converted monthly near-surface air temperature
+    measurements into annual averages and applied cosine-latitude weighting
+    to account for differences in the surface area represented by different
+    latitudes. We then calculated temperature anomalies relative to each
+    model's own 1850–1900 historical average. Using anomalies rather than
+    absolute temperatures makes comparisons between models more meaningful.
+    Overall, our design prioritizes both a clear overview of future warming
+    and the ability to investigate the underlying sources of uncertainty.
+  </p>
+
+  <h3>Development Process</h3>
+  <p>
+    Our team worked collaboratively to develop the data processing pipeline,
+    visualization, and interactive features. We used a Jupyter notebook
+    to retrieve and process CMIP6 climate data, producing a CSV file
+    containing annual global temperature anomalies for each model and
+    scenario. We then used D3.js to construct the interactive visualization
+    and implement the different chart components.
+  </p>
+
+  <p>
+    The development process involved organizing the climate data,
+    calculating averages and model ranges, designing the visual encodings,
+    and implementing interactions that allow users to explore the results.
+    Particular attention was given to connecting the main temperature chart
+    with the uncertainty comparison chart so that readers could understand
+    not only how much warming is projected, but also where the differences
+    between projections come from.
+  </p>
+
+  <h4>Team Contributions and Hours</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Team Member</th>
+        <th>Contributions</th>
+        <th>Approx. Hours</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Mac Dang</td>
+        <td>[Add actual contributions]</td>
+        <td>[Hours]</td>
+      </tr>
+      <tr>
+        <td>Athena Lin</td>
+        <td>[Add actual contributions]</td>
+        <td>[Hours]</td>
+      </tr>
+      <tr>
+        <td>Gian Cortez</td>
+        <td>[Add actual contributions]</td>
+        <td>[Hours]</td>
+      </tr>
+      <tr>
+        <td>Christopher Nguyen</td>
+        <td>[Add actual contributions]</td>
+        <td>[Hours]</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Total Estimated People-Hours:</strong> [Add total]
+  </p>
+
+  <p>
+    The most time-consuming parts of the project were [add the actual tasks
+    that required the most time, such as data preparation, implementing the
+    interactive charts, or debugging and refining the visualization].
+    Through this project, we gained experience working with large climate
+    datasets, transforming scientific data into meaningful visual
+    representations, and building interactive visualizations with D3.js.
+  </p>
+</section>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
